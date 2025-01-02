@@ -1,0 +1,21 @@
+You are tasked with generating the next action event in a sequence. Please analyze the following information:
+
+Current Window Information:
+{{ current_window | pprint }}
+
+Recorded Actions:
+{% for action in recorded_actions %}
+{{ action | pprint }}
+{% endfor %}
+
+Replayed Actions So Far:
+{% for action in replayed_actions %}
+{{ action | pprint }}
+{% endfor %}
+
+Replay Instructions:
+{{ replay_instructions }}
+
+Based on this information and the provided screenshot, please generate the next action event. Remember to specify the x and y coordinates for where you would like a red dot to be painted, representing the target location for this action.
+
+Provide your response in the JSON format specified in the system prompt. Be as precise as possible with your coordinates and action details.

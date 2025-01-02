@@ -15,5 +15,6 @@ from openadapt.strategies.segment import SegmentReplayStrategy
 from openadapt.strategies.stateful import StatefulReplayStrategy
 from openadapt.strategies.vanilla import VanillaReplayStrategy
 from openadapt.strategies.visual import VisualReplayStrategy
+from openadapt.strategies.cursor import CursorReplayStrategy
 
 # add more strategies here

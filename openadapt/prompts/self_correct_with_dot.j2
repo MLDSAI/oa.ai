@@ -1,0 +1,30 @@
+You have previously suggested the following action:
+
+{{ initial_action | pprint }}
+
+A red dot has been painted on the screenshot at the x and y coordinates you specified. Please carefully examine the new screenshot with the red dot.
+
+Current Window Information:
+{{ current_window | pprint }}
+
+Recorded Actions:
+{% for action in recorded_actions %}
+{{ action | pprint }}
+{% endfor %}
+
+Replayed Actions So Far:
+{% for action in replayed_actions %}
+{{ action | pprint }}
+{% endfor %}
+
+Replay Instructions:
+{{ replay_instructions }}
+
+After examining the screenshot with the red dot, please confirm or correct your initial action suggestion. If you believe your initial suggestion was correct, you may simply state "Confirmed". If you believe a correction is necessary, please provide a completely new JSON object with the corrected information, using the format specified in the system prompt.
+
+Remember to consider:
+1. Is the red dot accurately placed for the intended action?
+2. Does the placement align with the visible elements in the interface?
+3. Is the action type (mouse/keyboard) and specifics (button/key, action type) still appropriate given the dot placement?
+
+Provide your final decision below:
