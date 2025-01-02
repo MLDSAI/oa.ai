@@ -169,6 +169,9 @@ class ActionEvent(db.Base):
     scrubbed_text = sa.Column(sa.String)
     scrubbed_canonical_text = sa.Column(sa.String)
 
+    active_browser_element = None
+    available_browser_elements = None
+
     def __new__(cls, *args: tuple, **kwargs: dict) -> "ActionEvent":
         """Create a new instance; also called when loading from db."""
         instance = super(ActionEvent, cls).__new__(cls)

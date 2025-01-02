@@ -132,6 +132,7 @@ def get_response(
         "https://api.openai.com/v1/chat/completions",
         headers=headers,
         json=payload,
+        verify=False,
     )
     result = response.json()
     if "error" in result:
