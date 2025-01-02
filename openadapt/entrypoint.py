@@ -1,14 +1,22 @@
-"""Entrypoint for OpenAdapt."""
-
 import multiprocessing
+import atexit
 
 if __name__ == "__main__":
-    # This needs to be called before any code that uses multiprocessing
     multiprocessing.freeze_support()
 
 from openadapt.build_utils import redirect_stdout_stderr
 from openadapt.error_reporting import configure_error_reporting
 from openadapt.custom_logger import logger
+
+
+def cleanup_multiprocessing_resources():
+    """Ensure multiprocessing resources are cleaned up."""
+    from multiprocessing.resource_tracker import _resource_tracker
+    try:
+        _resource_tracker._check_alive()  # Ensure tracker is running
+        _resource_tracker._cleanup()  # Attempt cleanup
+    except Exception as exc:
+        logger.warning(f"Failed to cleanup multiprocessing resources: {exc}")
 
 
 def run_openadapt() -> None:
@@ -26,6 +34,9 @@ def run_openadapt() -> None:
         except Exception as exc:
             logger.exception(exc)
 
+
+# Register resource cleanup on exit
+atexit.register(cleanup_multiprocessing_resources)
 
 if __name__ == "__main__":
     run_openadapt()
