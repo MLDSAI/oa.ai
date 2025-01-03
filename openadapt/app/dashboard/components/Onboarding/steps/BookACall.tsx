@@ -6,7 +6,7 @@ export const BookACall = () => {
   return (
     <Box w="fit-content">
         <Text>
-            <Link href="https://www.getclockwise.com/c/richard-abrich/quick-meeting" className='no-underline'>
+            <Link href="https://richardabrich.youcanbook.me" className='no-underline'>
                 Book a call with us
             </Link>
             <Text component='span'> to discuss how OpenAdapt can help your team</Text>
