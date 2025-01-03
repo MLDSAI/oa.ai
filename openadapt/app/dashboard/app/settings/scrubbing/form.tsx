@@ -39,7 +39,7 @@ export const Form = ({
         <form onSubmit={form.onSubmit(_onSubmit)}>
             <Grid>
                 <Grid.Col span={6}>
-                    <Checkbox label="Scrubbing Enabled" {...form.getInputProps('SCRUB_ENABLED')} checked={form.values.SCRUB_ENABLED} />
+                    <Checkbox label="Scrubbing Enabled" {...form.getInputProps('SCRUB_ENABLED')} />
                 </Grid.Col>
                 <Grid.Col span={6}>
                     <TextInput label="Scrubbing character" placeholder="Scrubbing character" {...form.getInputProps('SCRUB_CHAR')} />

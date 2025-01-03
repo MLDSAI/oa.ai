@@ -12,13 +12,24 @@ type Props = {
 export const Form = ({
     settings,
 }: Props) => {
+    const defaultSettings = {
+        PRIVATE_AI_API_KEY: '',
+        REPLICATE_API_TOKEN: '',
+        OPENAI_API_KEY: '',
+        ANTHROPIC_API_KEY: '',
+        GOOGLE_API_KEY: '',
+    };
+
     const form = useForm({
-        initialValues: JSON.parse(JSON.stringify(settings)),
-    })
+        initialValues: { ...defaultSettings, ...settings },
+    });
 
     useEffect(() => {
-        form.setValues(JSON.parse(JSON.stringify(settings)));
-        form.setInitialValues(JSON.parse(JSON.stringify(settings)));
+        // Only set values if settings are defined and different from initial values
+        if (settings && JSON.stringify(form.values) !== JSON.stringify(settings)) {
+            form.setValues({ ...defaultSettings, ...settings });
+            form.setInitialValues({ ...defaultSettings, ...settings });
+        }
     }, [settings]);
 
     function resetForm() {
