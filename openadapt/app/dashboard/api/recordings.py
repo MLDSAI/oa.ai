@@ -11,6 +11,7 @@ from openadapt.events import get_events
 from openadapt.models import Recording
 from openadapt.plotting import display_event
 from openadapt.utils import image2utf8, row2dict
+from openadapt.adapters.prompt import generate_summary_and_icon
 
 
 class RecordingsAPI:
@@ -135,6 +136,9 @@ class RecordingsAPI:
                     word_index += 1
                 event_dict["words"] = words
                 convert_to_str(event_dict)
+                summary, icon = generate_summary_and_icon(event_dict)
+                event_dict["summary"] = summary
+                event_dict["icon"] = icon
                 await websocket.send_json({"type": "action_event", "value": event_dict})
 
             await websocket.close()

@@ -41,6 +41,26 @@ def prompt(
     raise Exception("All drivers failed to provide a response")
 
 
+def generate_summary_and_icon(action_dict: dict, window_dict: dict, screenshot: Image.Image) -> tuple[str, str]:
+    """Generate a summary and icon for a given action.
+
+    Args:
+        action_dict: The action dictionary.
+        window_dict: The window dictionary.
+        screenshot: The screenshot image.
+
+    Returns:
+        A tuple containing the summary and icon.
+    """
+    summary_prompt = f"Please provide a one sentence summary of the following action: {action_dict}, window: {window_dict}"
+    summary = prompt(summary_prompt, images=[screenshot])
+
+    icon_prompt = f"Please provide an icon for the following action: {action_dict}, window: {window_dict}"
+    icon = prompt(icon_prompt, images=[screenshot])
+
+    return summary, icon
+
+
 if __name__ == "__main__":
     # This could be extended to use command-line arguments or other input methods
     print(prompt("Describe the solar system."))

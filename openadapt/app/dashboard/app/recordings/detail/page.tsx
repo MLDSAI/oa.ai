@@ -97,6 +97,8 @@ function modifyActionEvent(actionEvent: ActionEventType, isOriginal: boolean): A
         children,
         isComputed,
         isOriginal,
+        summary: actionEvent.summary,
+        icon: actionEvent.icon,
     }
 }
 
