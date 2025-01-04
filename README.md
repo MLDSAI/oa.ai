@@ -220,11 +220,13 @@ To record browser events in Google Chrome (required by the `BrowserReplayStrateg
 
 3. Click `Load unpacked` (located at the top left).
 
-4. Select the `chrome_extension` directory in the OpenAdapt repo.
+4. Select the [`chrome_extension`](https://github.com/OpenAdaptAI/OpenAdapt/tree/main/chrome_extension) directory in the OpenAdapt repo.
 
 5. Make sure the Chrome extension is enabled (the switch to the right of the OpenAdapt extension widget is turned on).
 
 6. Set the `RECORD_BROWSER_EVENTS` flag to `true` in `openadapt/data/config.json`.
+
+See also: https://github.com/OpenAdaptAI/OpenAdapt/pull/872
 
 ## Features
 
