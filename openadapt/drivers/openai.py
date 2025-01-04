@@ -268,6 +268,7 @@ def prompt(
     prompt: str,
     system_prompt: str | None = None,
     images: list[Image.Image] | None = None,
+    model: str = MODEL_NAME,
     max_tokens: int | None = None,
     detail: str = "high",
 ) -> str:
@@ -292,6 +293,7 @@ def prompt(
         prompt,
         system_prompt,
         images,
+        model=model,
         max_tokens=max_tokens,
         detail=detail,
     )

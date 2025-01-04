@@ -21,6 +21,8 @@ from openadapt.config import CAPTURE_DIR_PATH, print_config
 from openadapt.db import crud
 from openadapt.error_reporting import configure_error_reporting
 from openadapt.models import Recording
+from openadapt.strategies import BaseReplayStrategy
+
 
 LOG_LEVEL = "INFO"
 
@@ -70,7 +72,7 @@ def replay(
 
     logger.info(f"{strategy_name=}")
 
-    strategy_class_by_name = utils.get_strategy_class_by_name()
+    strategy_class_by_name = utils.get_subclass_by_name(BaseReplayStrategy)
     if strategy_name not in strategy_class_by_name:
         strategy_names = [
             name

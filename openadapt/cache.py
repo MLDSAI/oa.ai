@@ -62,13 +62,12 @@ def cache(
     Returns:
         The decorator function.
     """
-    cache_dir_path = default(dir_path, config.CACHE_DIR_PATH)
-    cache_enabled = default(enabled, config.CACHE_ENABLED)
-    cache_verbosity = default(verbosity, config.CACHE_VERBOSITY)
-
     def decorator(fn: Callable) -> Callable:
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            cache_dir_path = default(dir_path, config.CACHE_DIR_PATH)
+            cache_enabled = default(enabled, config.CACHE_ENABLED)
+            cache_verbosity = default(verbosity, config.CACHE_VERBOSITY)
             logger.debug(f"{cache_enabled=}")
             if cache_enabled:
                 memory = Memory(cache_dir_path, verbose=cache_verbosity)

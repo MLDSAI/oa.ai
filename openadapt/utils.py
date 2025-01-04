@@ -6,7 +6,7 @@ This module provides various utility functions used throughout OpenAdapt.
 from functools import wraps
 from io import BytesIO
 from logging import StreamHandler
-from typing import Any, Callable
+from typing import Any, Callable, Type
 import ast
 import base64
 import importlib.metadata
@@ -475,16 +475,33 @@ def take_screenshot() -> Image.Image:
     return image
 
 
-def get_strategy_class_by_name() -> dict:
-    """Get a dictionary of strategy classes by their names.
+def get_subclass_by_name(base_class: Type) -> dict:
+    """Get a dictionary of subclasses by their names, recursively.
+
+    Args:
+        base_class (Type): The base class to find subclasses for.
 
     Returns:
-        dict: A dictionary of strategy classes.
+        dict: A dictionary where keys are subclass names and values are the subclass types.
     """
-    from openadapt.strategies import BaseReplayStrategy
+    def get_all_subclasses(cls: Type) -> list[Type]:
+        """
+        Get all subclasses of a given class, recursively.
 
-    strategy_classes = BaseReplayStrategy.__subclasses__()
-    class_by_name = {cls.__name__: cls for cls in strategy_classes}
+        Args:
+            cls (Type): The class to find subclasses for.
+
+        Returns:
+            list[Type]: A list of all subclasses of the given class.
+        """
+        subclasses = cls.__subclasses__()
+        all_subclasses = subclasses.copy()
+        for subclass in subclasses:
+            all_subclasses.extend(get_all_subclasses(subclass))
+        return all_subclasses
+
+    subclasses = get_all_subclasses(base_class)
+    class_by_name = {cls.__name__: cls for cls in subclasses}
     logger.debug(f"{class_by_name=}")
     return class_by_name
 
@@ -656,14 +673,13 @@ def parse_code_snippet(snippet: str) -> dict:
         rval = ast.literal_eval(code_content)
     except Exception as exc:
         logger.exception(exc)
-        import ipdb
-
-        ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         # TODO: handle this
         raise
     return rval
 
 
+# TODO: support multiple blocks
 def extract_code_block(text: str) -> str:
     """Extract the text enclosed by the outermost backticks.
 
