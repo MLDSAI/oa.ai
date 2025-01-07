@@ -3,18 +3,32 @@
 usage: `python -m openadapt.app.tray` or `poetry run app`
 """
 
+import sys
+import asyncio
+import os
+
+# Fix for Windows ProactorEventLoop
+if sys.platform == "win32":
+    try:
+        if isinstance(
+            asyncio.get_event_loop_policy(), asyncio.WindowsProactorEventLoopPolicy
+        ):
+            # Use WindowsSelectorEventLoopPolicy instead
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception as e:
+        print(f"Failed to set event loop policy: {e}")
+
 from datetime import datetime
 from functools import partial
 from pprint import pformat
-from threading import Thread
+from threading import Event, Thread
 from typing import Any, Callable
 import inspect
 import multiprocessing
-import os
-import sys
+import time
 
 from pyqttoast import Toast, ToastButtonAlignment, ToastIcon, ToastPosition, ToastPreset
-from PySide6.QtCore import QMargins, QObject, QSize, Qt, QThread, Signal
+from PySide6.QtCore import QMargins, QObject, QSize, Qt, QThread, QTimer, Signal
 from PySide6.QtGui import QAction, QColor, QFont, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -32,8 +46,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+import requests
 
-from openadapt.app import quick_record, stop_record, FPATH
+from openadapt.app import FPATH, quick_record, stop_record
 from openadapt.app.dashboard.run import cleanup as cleanup_dashboard
 from openadapt.app.dashboard.run import run as run_dashboard
 from openadapt.build_utils import is_running_from_executable
@@ -97,6 +112,109 @@ class Worker(QObject):
                 self.data.emit(data)
 
 
+class DashboardMonitor(QObject):
+    """Monitor dashboard initialization."""
+
+    ready = Signal()
+
+    def __init__(self, app: QApplication = None, port: int = 5173) -> None:
+        """Initializes the DashboardMonitor.
+
+        Args:
+            app (QApplication, optional): The QApplication instance. Defaults to None.
+            port (int, optional): The port number for the dashboard. Defaults to 5173.
+
+        Attributes:
+            stop_flag (Event): An event flag to signal stopping the monitor.
+            port (int): The port number for the dashboard.
+            _is_ready (bool): A flag indicating if the monitor is ready.
+            monitor_thread (QThread or None): The thread for monitoring.
+        """
+        super().__init__()
+        self.stop_flag = Event()
+        self.port = port
+        self._is_ready = False
+
+        if app is not None:
+            self.monitor_thread = QThread()
+            self.moveToThread(self.monitor_thread)
+            self.monitor_thread.started.connect(self.monitor_startup)
+            self.monitor_thread.finished.connect(self.on_thread_finished)
+        else:
+            self.monitor_thread = None
+
+        print("DEBUG(DashboardMonitor): Signal ready created")
+
+        # Connect to our own ready signal to update state
+        self.ready.connect(self._update_ready_state)
+
+    def _update_ready_state(self) -> None:
+        """Update internal ready state when signal is emitted."""
+        self._is_ready = True
+        print("DEBUG(DashboardMonitor): Ready state updated")
+
+    def on_thread_finished(self) -> None:
+        """Handle thread finished signal."""
+        logger.info("Dashboard monitor thread finished")
+
+    def monitor_startup(self) -> None:
+        """Monitor dashboard startup process."""
+        logger.info("Starting dashboard monitoring")
+        start_time = time.time()
+        try:
+            while not self.stop_flag.is_set():
+                try:
+                    elapsed_time = time.time() - start_time
+                    print(
+                        "DEBUG(DashboardMonitor): Checking dashboard. Elapsed:"
+                        f" {elapsed_time:.2f}s"
+                    )
+
+                    response = requests.get(f"http://localhost:{self.port}", timeout=1)
+                    if response.status_code == 200:
+                        logger.info("Dashboard is ready!")
+
+                        # Emit signal in main thread
+                        QTimer.singleShot(0, self.on_dashboard_ready)
+                        break
+                except requests.RequestException as e:
+                    logger.debug(f"Connection attempt failed: {e}")
+                    time.sleep(0.5)
+
+                if time.time() - start_time > 30:
+                    logger.warning("Monitoring timeout")
+                    break
+        finally:
+            self.monitor_thread.quit()
+
+    def on_dashboard_ready(self) -> None:
+        """Handle dashboard being ready."""
+        try:
+            self.ready.emit()
+            logger.info("Emitting ready signal")
+        except Exception as e:
+            logger.error(f"Error emitting signal: {e}")
+
+    def check_ready_state(self) -> None:
+        """Check if dashboard is ready and re-emit if necessary."""
+        if self._is_ready:
+            QTimer.singleShot(0, self.on_dashboard_ready)
+
+    def stop(self) -> None:
+        """Stop monitoring and cleanup thread."""
+        logger.info("Stopping dashboard monitor")
+        self.stop_flag.set()
+
+        if self.monitor_thread and self.monitor_thread.isRunning():
+            try:
+                self.monitor_thread.quit()
+                if not self.monitor_thread.wait(1000):
+                    logger.warning("Dashboard monitor thread did not stop cleanly")
+                    self.monitor_thread.terminate()
+            except Exception as e:
+                logger.error(f"Error stopping dashboard monitor thread: {e}")
+
+
 class SystemTrayIcon:
     """System tray icon for OpenAdapt."""
 
@@ -107,9 +225,12 @@ class SystemTrayIcon:
     # storing actions is required to prevent garbage collection
     recording_actions = {"visualize": [], "replay": []}
 
-    def __init__(self) -> None:
+    def __init__(self, app: QApplication = None) -> None:
         """Initialize the system tray icon."""
-        self.app = QApplication([])
+        if app is None:
+            self.app = QApplication([])
+        else:
+            self.app = app
 
         if sys.platform == "darwin":
             # hide Dock icon while allowing focus on dialogs
@@ -492,13 +613,36 @@ class SystemTrayIcon:
 
     def launch_dashboard(self) -> None:
         """Launch the web dashboard."""
-        if self.dashboard_thread:
-            if is_running_from_executable():
-                return
-            cleanup_dashboard()
-            self.dashboard_thread.join()
-        self.dashboard_thread = run_dashboard()
-        self.dashboard_thread.start()
+        try:
+            if self.dashboard_thread:
+                if is_running_from_executable():
+                    return
+                cleanup_dashboard()
+                self.dashboard_thread.join()
+
+            # Start dashboard
+            self.dashboard_thread = run_dashboard()
+            self.dashboard_thread.start()
+            logger.info("Dashboard thread started")
+
+            # Initialize dashboard monitor
+            self.dashboard_monitor = DashboardMonitor(app=self.app)
+
+            # Connect ready signal BEFORE starting monitoring
+            self.dashboard_monitor.ready.connect(
+                self.on_dashboard_ready, Qt.ConnectionType.QueuedConnection
+            )
+
+            # Start monitoring
+            self.dashboard_monitor.monitor_startup()
+            logger.info("Dashboard monitor started")
+
+        except Exception as e:
+            logger.error(f"Launch dashboard error: {e}")
+
+    def on_dashboard_ready(self) -> None:
+        """Handle dashboard being ready."""
+        logger.info("Dashboard is ready - performing final setup")
 
     def run(self) -> None:
         """Run the system tray icon."""
