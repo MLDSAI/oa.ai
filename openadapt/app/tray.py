@@ -3,6 +3,21 @@
 usage: `python -m openadapt.app.tray` or `poetry run app`
 """
 
+import sys
+import asyncio
+import os
+
+# Fix for Windows ProactorEventLoop
+if sys.platform == "win32":
+    try:
+        if isinstance(
+            asyncio.get_event_loop_policy(), asyncio.WindowsProactorEventLoopPolicy
+        ):
+            # Use WindowsSelectorEventLoopPolicy instead
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception as e:
+        print(f"Failed to set event loop policy: {e}")
+
 from datetime import datetime
 from functools import partial
 from pprint import pformat
@@ -10,8 +25,6 @@ from threading import Thread
 from typing import Any, Callable
 import inspect
 import multiprocessing
-import os
-import sys
 
 from pyqttoast import Toast, ToastButtonAlignment, ToastIcon, ToastPosition, ToastPreset
 from PySide6.QtCore import QMargins, QObject, QSize, Qt, QThread, Signal
@@ -33,7 +46,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from openadapt.app import quick_record, stop_record, FPATH
+from openadapt.app import FPATH, quick_record, stop_record
 from openadapt.app.dashboard.run import cleanup as cleanup_dashboard
 from openadapt.app.dashboard.run import run as run_dashboard
 from openadapt.build_utils import is_running_from_executable
@@ -109,8 +122,9 @@ class SystemTrayIcon:
 
     def __init__(self) -> None:
         """Initialize the system tray icon."""
-        self.app = QApplication([])
-
+        self.app = QApplication.instance()
+        if not self.app:
+            self.app = QApplication([])
         if sys.platform == "darwin":
             # hide Dock icon while allowing focus on dialogs
             # (must come after QApplication())
