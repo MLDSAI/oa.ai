@@ -467,12 +467,26 @@ def take_screenshot() -> Image.Image:
     Returns:
         PIL.Image: The screenshot image.
     """
-    # monitor 0 is all in one
     sct = get_process_local_sct()
     monitor = sct.monitors[0]
     sct_img = sct.grab(monitor)
     image = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
     return image
+
+
+def take_screenshots() -> list[Image.Image]:
+    """Take screenshots of all monitors.
+
+    Returns:
+        list[PIL.Image]: List of screenshot images from all monitors.
+    """
+    sct = get_process_local_sct()
+    screenshots = []
+    for monitor in sct.monitors[1:]:
+        sct_img = sct.grab(monitor)
+        image = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
+        screenshots.append(image)
+    return screenshots
 
 
 def get_strategy_class_by_name() -> dict:
@@ -629,6 +643,7 @@ def parse_code_snippet(snippet: str) -> dict:
         ```json
         { "foo": true }
         ```
+
     Returns:
 
         { "foo": True }

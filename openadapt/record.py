@@ -722,14 +722,15 @@ def read_screen_events(
     logger.info("Starting")
     started = False
     while not terminate_processing.is_set():
-        screenshot = utils.take_screenshot()
-        if screenshot is None:
-            logger.warning("Screenshot was None")
+        screenshots = utils.take_screenshots()
+        if not screenshots:
+            logger.warning("Screenshots were None")
             continue
         if not started:
             started_event.set()
             started = True
-        event_q.put(Event(utils.get_timestamp(), "screen", screenshot))
+        for screenshot in screenshots:
+            event_q.put(Event(utils.get_timestamp(), "screen", screenshot))
     logger.info("Done")
 
 

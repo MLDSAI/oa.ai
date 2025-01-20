@@ -35,3 +35,12 @@ def test_posthog_capture() -> None:
                 },
                 distinct_id=config.UNIQUE_USER_ID,
             )
+
+
+def test_take_screenshots() -> None:
+    """Tests utils.take_screenshots."""
+    screenshots = utils.take_screenshots()
+
+    assert isinstance(screenshots, list), f"Expected list, got {type(screenshots).__name__}"
+    for screenshot in screenshots:
+        assert isinstance(screenshot, utils.Image.Image), f"Expected PIL.Image, got {type(screenshot).__name__}"

@@ -33,6 +33,7 @@ from openadapt.utils import (
     row2dict,
     rows2dicts,
     truncate_html,
+    take_screenshots,
 )
 
 SCRUB = config.SCRUB_ENABLED
@@ -436,6 +437,28 @@ def main(
                 progress.update()
 
             progress.close()
+
+    # Display screenshots from all monitors
+    screenshots = take_screenshots()
+    for idx, screenshot in enumerate(screenshots):
+        screenshot_utf8 = image2utf8(screenshot)
+        width, height = screenshot.size
+        rows.append(
+            row(
+                Div(
+                    text=f"""
+                    <div class="screenshot">
+                        <img
+                            src="{screenshot_utf8}"
+                            style="
+                                aspect-ratio: {width}/{height};
+                            "
+                        >
+                    </div>
+                """,
+                ),
+            )
+        )
 
     title = f"recording-{recording.id}"
 
