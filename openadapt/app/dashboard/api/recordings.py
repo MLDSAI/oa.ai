@@ -29,6 +29,9 @@ class RecordingsAPI:
         self.app.add_api_route("/start", self.start_recording)
         self.app.add_api_route("/stop", self.stop_recording)
         self.app.add_api_route("/status", self.recording_status)
+        self.app.add_api_route(
+            "/{recording_id}/screenshots", self.get_recording_screenshots
+        )
         self.recording_detail_route()
         return self.app
 
@@ -62,6 +65,25 @@ class RecordingsAPI:
     def recording_status() -> dict[str, bool]:
         """Get the recording status."""
         return {"recording": cards.is_recording()}
+
+    @staticmethod
+    def get_recording_screenshots(recording_id: int) -> dict[str, list[str]]:
+        """Get all screenshots for a specific recording."""
+        session = crud.get_new_session(read_only=True)
+        recording = crud.get_recording_by_id(session, recording_id)
+        action_events = get_events(session, recording)
+
+        screenshots = []
+        for action_event in action_events:
+            try:
+                image = display_event(action_event)
+                if image:
+                    screenshots.append(image2utf8(image))
+            except Exception as e:
+                logger.info(f"Failed to display event: {e}")
+                continue
+
+        return {"screenshots": screenshots}
 
     def recording_detail_route(self) -> None:
         """Add the recording detail route as a websocket."""

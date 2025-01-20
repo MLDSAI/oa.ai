@@ -51,12 +51,12 @@ export default function Recordings() {
     return (
         <Box>
             {recordingStatus === RecordingStatus.RECORDING && (
-                <Button onClick={stopRecording} variant="outline" color="red">
+                <Button onClick={stopRecording} variant="outline" className="hover:bg-red-900 bg-red-600 hover:text-zinc-100 text-zinc-200 hover:text-white">
                     Stop recording
                 </Button>
             )}
             {recordingStatus === RecordingStatus.STOPPED && (
-                <Button onClick={startRecording} variant="outline" color="blue">
+                <Button onClick={startRecording} variant="outline" className="hover:bg-accent bg-primary/80 hover:text-zinc-100 text-zinc-200 hover:text-white">
                     Start recording
                 </Button>
             )}
