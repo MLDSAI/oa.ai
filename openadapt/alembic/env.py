@@ -10,7 +10,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from openadapt.config import config
 from openadapt.db import db
-from openadapt.models import ForceFloat
+from openadapt.decorators import ForceFloat
 
 # This is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

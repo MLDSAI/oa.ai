@@ -24,14 +24,14 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "timestamp",
-            openadapt.models.ForceFloat(precision=10, scale=2, asdecimal=False),
+            openadapt.decorators.ForceFloat(precision=10, scale=2, asdecimal=False),
             nullable=True,
         ),
         sa.Column("flac_data", sa.LargeBinary(), nullable=True),
         sa.Column("transcribed_text", sa.String(), nullable=True),
         sa.Column(
             "recording_timestamp",
-            openadapt.models.ForceFloat(precision=10, scale=2, asdecimal=False),
+            openadapt.decorators.ForceFloat(precision=10, scale=2, asdecimal=False),
             nullable=True,
         ),
         sa.Column("recording_id", sa.Integer(), nullable=True),

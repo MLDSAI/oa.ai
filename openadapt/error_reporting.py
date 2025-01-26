@@ -3,6 +3,7 @@
 from typing import Any
 
 from loguru import logger
+
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QPushButton
 import git

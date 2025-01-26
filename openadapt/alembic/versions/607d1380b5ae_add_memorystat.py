@@ -8,7 +8,7 @@ Create Date: 2023-06-28 11:54:36.749072
 import sqlalchemy as sa
 
 from alembic import op
-from openadapt.models import ForceFloat
+from openadapt.decorators import ForceFloat
 
 # revision identifiers, used by Alembic.
 revision = "607d1380b5ae"
